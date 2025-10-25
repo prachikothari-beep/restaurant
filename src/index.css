@@ -1,0 +1,39 @@
+/* index.css file */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables using your tailwind.config.mjs colors */
+:root {
+  --color-custom-orange-500: #f97316; /* From tailwind.config.mjs */
+  --color-custom-orange-600: #ea580c; /* From tailwind.config.mjs */
+}
+
+/* Optional custom styling */
+body {
+ @apply font-sans bg-gray-50;
+}
+
+button {
+ 
+    /* ❌ Old: @apply bg-orange-500 hover:bg-orange-600 ... */
+    /* ✅ New: Use the direct CSS variables/properties or utility classes */
+    
+    /* ⚠️ If you still want to use @apply, ensure your config is being loaded.
+       Try using the JIT mode syntax with arbitrary values (though this is verbose):
+       @apply bg-[var(--color-custom-orange-500)] hover:bg-[var(--color-custom-orange-600)] text-white px-4 py-2 rounded-lg transition-all;
+    */
+    
+    /* Simpler approach without @apply: */
+    background-color: var(--color-custom-orange-500);
+    color: white; /* Equivalent to text-white */
+    padding: 8px 16px; /* Equivalent to px-4 py-2 */
+    border-radius: 0.5rem; /* Equivalent to rounded-lg */
+    transition: all; /* Equivalent to transition-all */
+
+    /* Add hover effect separately */
+    &:hover {
+        background-color: var(--color-custom-orange-600);
+    }
+}
