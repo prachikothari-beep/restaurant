@@ -24,12 +24,52 @@
 
 // module.exports = router;
 
+// const express = require('express');
+// const router = express.Router();
+// const jwt = require('jsonwebtoken');
+// const MenuItem = require('../models/MenuItem');
+
+// // GET menu items
+// router.get('/', async (req, res) => {
+//   try {
+//     const token = req.headers.authorization?.split(' ')[1];
+//     if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     const role = decoded.role;
+
+//     let items;
+
+//     if (role === 'staff' || role === 'admin') {
+//       // Staff/Admin dekhen sab tables ka menu
+//       items = await MenuItem.find();
+//     } else {
+//       // Customer
+//       const tableSlug = req.query.tableSlug;
+//       if (!tableSlug) return res.status(400).json({ error: 'Table slug required' });
+//       items = await MenuItem.find({ tableSlug });
+//     }
+
+//     if (!items || items.length === 0) return res.json({ message: 'No menu items found' });
+
+//     res.json(items);
+//   } catch (err) {
+//     console.error('Menu fetch error:', err);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+// module.exports = router;
+
+
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const MenuItem = require('../models/MenuItem');
 
-// GET menu items
+// ===========================
+// GET ALL MENU ITEMS
+// ===========================
 router.get('/', async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -37,24 +77,37 @@ router.get('/', async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const role = decoded.role;
-
     let items;
 
     if (role === 'staff' || role === 'admin') {
-      // Staff/Admin dekhen sab tables ka menu
+      // Staff/Admin can see all items
       items = await MenuItem.find();
     } else {
-      // Customer
+      // Customer view (by tableSlug)
       const tableSlug = req.query.tableSlug;
       if (!tableSlug) return res.status(400).json({ error: 'Table slug required' });
       items = await MenuItem.find({ tableSlug });
     }
 
-    if (!items || items.length === 0) return res.json({ message: 'No menu items found' });
+    if (!items || items.length === 0)
+      return res.json({ message: 'No menu items found' });
 
     res.json(items);
   } catch (err) {
     console.error('Menu fetch error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ===========================
+// ✅ GET ALL UNIQUE CATEGORIES
+// ===========================
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await MenuItem.distinct("category");
+    res.json(categories);
+  } catch (err) {
+    console.error('Category fetch error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
