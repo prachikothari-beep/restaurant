@@ -1,39 +1,139 @@
-/* index.css file */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* === Root Theme Variables === */
+/* *{
+  background-color: black;
+} */
 
-/* Custom CSS Variables using your tailwind.config.mjs colors */
 :root {
-  --color-custom-orange-500: #f97316; /* From tailwind.config.mjs */
-  --color-custom-orange-600: #ea580c; /* From tailwind.config.mjs */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --primary: #2b2d42;
+  --secondary: #8d99ae;
+  --accent: #ef233c;
+  --muted: #f8f9fa;
+  --border: #e5e5e5;
+  --radius: 0.625rem;
+  --transition: all 0.3s ease;
 }
 
-/* Optional custom styling */
-body {
- @apply font-sans bg-gray-50;
+.dark {
+  --background: #0a0a0a;
+  --foreground: #f8f9fa;
+  --primary: #edf2f4;
+  --secondary: #8d99ae;
+  --accent: #ef233c;
+  --muted: #1a1a1a;
+  --border: #333;
 }
 
-button {
- 
-    /* ❌ Old: @apply bg-orange-500 hover:bg-orange-600 ... */
-    /* ✅ New: Use the direct CSS variables/properties or utility classes */
-    
-    /* ⚠️ If you still want to use @apply, ensure your config is being loaded.
-       Try using the JIT mode syntax with arbitrary values (though this is verbose):
-       @apply bg-[var(--color-custom-orange-500)] hover:bg-[var(--color-custom-orange-600)] text-white px-4 py-2 rounded-lg transition-all;
-    */
-    
-    /* Simpler approach without @apply: */
-    background-color: var(--color-custom-orange-500);
-    color: white; /* Equivalent to text-white */
-    padding: 8px 16px; /* Equivalent to px-4 py-2 */
-    border-radius: 0.5rem; /* Equivalent to rounded-lg */
-    transition: all; /* Equivalent to transition-all */
+/* === Base Layer === */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    @apply border-border;
+  }
 
-    /* Add hover effect separately */
-    &:hover {
-        background-color: var(--color-custom-orange-600);
-    }
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    transition: var(--transition);
+  }
+}
+
+/* === Navbar Styling === */
+.navbar {
+  @apply flex justify-between items-center;
+  background: var(--muted);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.nav-links {
+  @apply flex gap-6;
+}
+
+.nav-links a {
+  color: var(--foreground);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.nav-links a:hover {
+  color: var(--accent);
+}
+
+/* === Home Section === */
+.home {
+  @apply flex flex-col items-center justify-center;
+  padding: 4rem 2rem;
+  background: var(--background);
+}
+
+.home h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.home p {
+  max-width: 600px;
+  color: var(--secondary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* === Button Style === */
+.btn {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #d90429;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .home h1 {
+    font-size: 2rem;
+  }
+
+  .home p {
+    font-size: 0.95rem;
+  }
 }

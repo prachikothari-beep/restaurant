@@ -1,93 +1,3 @@
-// import React, { useEffect, useState } from 'react';
-// import api from '../services/api';
-
-// export default function AdminPanel() {
-//   const [categories,setCategories] = useState([]);
-//   const [tables,setTables] = useState([]);
-
-//   useEffect(()=>{
-//     api.get('/menu/categories').then(res=>setCategories(res.data));
-//     api.get('/tables').then(res=>setTables(res.data));
-//   },[]);
-
-//   return (
-//     <div className="p-4">
-//       <h2 className="text-xl font-bold mb-2">Admin Panel</h2>
-//       <div>
-//         <h3 className="font-bold mt-2">Categories</h3>
-//         {categories.map(c=><div key={c._id}>{c.name}</div>)}
-//       </div>
-//       <div>
-//         <h3 className="font-bold mt-2">Tables</h3>
-//         {tables.map(t=><div key={t._id}>{t.number} - QR: {t.qrSlug}</div>)}
-//       </div>
-//     </div>
-//   );
-// }
-// import React, { useEffect, useState } from "react";
-// import api from "../services/api";
-
-// export default function AdminPanel() {
-//   const [categories, setCategories] = useState([]);
-//   const [tables, setTables] = useState([]);
-//   const [orders, setOrders] = useState([]);
-//   const [staff, setStaff] = useState([]);
-
-//   const token = localStorage.getItem("token");
-
-//   useEffect(() => {
-//     api.get("/menu/categories", { headers: { Authorization: `Bearer ${token}` } })
-//       .then((res) => setCategories(res.data));
-
-//     api.get("/tables", { headers: { Authorization: `Bearer ${token}` } })
-//       .then((res) => setTables(res.data));
-
-//     api.get("/orders", { headers: { Authorization: `Bearer ${token}` } })
-//       .then((res) => setOrders(res.data));
-
-//     api.get("/auth/staff", { headers: { Authorization: `Bearer ${token}` } })
-//       .then((res) => setStaff(res.data));
-//   }, []);
-
-//   return (
-//     <div className="p-4">
-//       <h2 className="text-xl font-bold mb-2">Admin Panel</h2>
-
-//       <div className="mb-4">
-//         <h3 className="font-bold mt-2">Orders</h3>
-//         {orders.map((o) => (
-//           <div key={o._id} className="border p-2 mb-1">
-//             Table {o.table.number} - Status: {o.status} - Staff: {o.assignedStaff?.name || "Unassigned"}
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="mb-4">
-//         <h3 className="font-bold mt-2">Staff</h3>
-//         {staff.map((s) => (
-//           <div key={s._id}>{s.name} ({s.email})</div>
-//         ))}
-//       </div>
-
-//       <div className="mb-4">
-//         <h3 className="font-bold mt-2">Categories</h3>
-//         {categories.map((c) => (
-//           <div key={c._id}>{c.name}</div>
-//         ))}
-//       </div>
-
-//       <div className="mb-4">
-//         <h3 className="font-bold mt-2">Tables</h3>
-//         {tables.map((t) => (
-//           <div key={t._id}>{t.number} - QR: {t.qrSlug}</div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 
@@ -102,18 +12,25 @@ export default function AdminPanel() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const headers = { Authorization: `Bearer ${token}` };
+
         const [catRes, tableRes, orderRes, staffRes] = await Promise.all([
-          api.get("/menu/categories", { headers: { Authorization: `Bearer ${token}` } }),
-          api.get("/tables", { headers: { Authorization: `Bearer ${token}` } }),
-          api.get("/orders", { headers: { Authorization: `Bearer ${token}` } }),
-          api.get("/auth/staff", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/menu/categories", { headers }),
+          api.get("/tables", { headers }),
+          api.get("/orders", { headers }),
+          api.get("/auth/staff", { headers }),
         ]);
-        setCategories(catRes.data);
-        setTables(tableRes.data);
-        setOrders(orderRes.data);
-        setStaff(staffRes.data);
+
+        console.log("🧾 Orders Data:", orderRes.data);
+        console.log("📋 Categories Data:", catRes.data);
+
+        // 🧠 Normalize response in case backend sends { data: [...] }
+        setCategories(Array.isArray(catRes.data) ? catRes.data : catRes.data.data || []);
+        setTables(Array.isArray(tableRes.data) ? tableRes.data : tableRes.data.data || []);
+        setOrders(Array.isArray(orderRes.data) ? orderRes.data : orderRes.data.data || []);
+        setStaff(Array.isArray(staffRes.data) ? staffRes.data : staffRes.data.data || []);
       } catch (err) {
-        console.error("Error loading admin data:", err);
+        console.error("❌ Error loading admin data:", err);
       } finally {
         setLoading(false);
       }
@@ -124,121 +41,219 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin border-4 border-gray-300 border-t-blue-600 rounded-full w-10 h-10"></div>
-        <p className="ml-3 text-gray-600">Loading admin panel...</p>
+      <div style={loadingContainer}>
+        <div style={spinner}></div>
+        <p style={{ marginTop: "10px" }}>Loading Admin Panel...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6">🍽️ Restaurant Admin Panel</h1>
+    <div style={mainContainer}>
+      {/* Header */}
+      <header style={{ textAlign: "center", marginBottom: "40px" }}>
+        <h1 style={title}>🍽️ Scan n Dine Admin Dashboard</h1>
+        <p style={subtitle}>Manage your restaurant with elegance and ease</p>
+      </header>
 
-      {/* --- Orders Section --- */}
-      <section className="mb-8 bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3 border-b pb-2">🧾 Current Orders</h2>
-        {orders.length === 0 ? (
-          <p className="text-gray-500">No active orders yet.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-3">
-            {orders.map((o) => (
-              <div
-                key={o._id}
-                className="border rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-lg">Table #{o.table.number}</h3>
+      {/* Grid */}
+      <div style={gridContainer}>
+        {/* Orders */}
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>🧾 Current Orders</h2>
+          {orders.length === 0 ? (
+            <p style={emptyText}>No active orders yet.</p>
+          ) : (
+            orders.map((o) => (
+              <div key={o._id} style={miniCard}>
+                <div style={cardHeader}>
+                  <h3 style={{ margin: 0, color: "#b8860b" }}>
+                    Table #{o.table?.number ?? "N/A"}
+                  </h3>
                   <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      o.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : o.status === "in-progress"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
+                    style={{
+                      backgroundColor:
+                        o.status === "completed"
+                          ? "#fff8dc"
+                          : o.status === "in-progress"
+                          ? "#faebd7"
+                          : "#f5f5dc",
+                      color: "#8b7500",
+                      padding: "3px 10px",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                      border: "1px solid #d4af37",
+                    }}
                   >
                     {o.status}
                   </span>
                 </div>
-                <p className="text-sm mt-1 text-gray-600">
-                  Staff:{" "}
-                  <span className="font-medium">
-                    {o.assignedStaff?.name || "Unassigned"}
-                  </span>
+                <p style={{ fontSize: "13px", marginTop: "5px" }}>
+                  <strong>Staff:</strong> {o.assignedStaff?.name || "Unassigned"}
                 </p>
-                <ul className="mt-2 text-sm text-gray-700 list-disc list-inside">
-                  {o.items.map((i, idx) => (
-                    <li key={idx}>
-                      {i.name} × {i.qty}
-                    </li>
-                  ))}
+                <ul style={{ paddingLeft: "18px", marginTop: "5px" }}>
+                  {o.items?.length > 0 ? (
+                    o.items.map((i, idx) => (
+                      <li key={idx} style={{ fontSize: "13px" }}>
+                        {i.name} × {i.qty}
+                      </li>
+                    ))
+                  ) : (
+                    <li>No items</li>
+                  )}
                 </ul>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            ))
+          )}
+        </div>
 
-      {/* --- Staff Section --- */}
-      <section className="mb-8 bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3 border-b pb-2">👨‍🍳 Staff Members</h2>
-        {staff.length === 0 ? (
-          <p className="text-gray-500">No staff registered.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {staff.map((s) => (
-              <div
-                key={s._id}
-                className="border rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
-              >
-                <h3 className="font-bold text-blue-700">{s.name}</h3>
-                <p className="text-gray-600 text-sm">{s.email}</p>
-                <p className="text-xs text-gray-500 mt-1">Role: {s.role || "Staff"}</p>
+        {/* Staff */}
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>👨‍🍳 Staff Members</h2>
+          {staff.length === 0 ? (
+            <p style={emptyText}>No staff registered.</p>
+          ) : (
+            staff.map((s) => (
+              <div key={s._id} style={miniCard}>
+                <h3 style={{ margin: 0, color: "#b8860b" }}>{s.name}</h3>
+                <p style={{ fontSize: "13px", color: "#555" }}>{s.email}</p>
+                <p style={{ fontSize: "12px", color: "#888" }}>
+                  Role: {s.role || "Staff"}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            ))
+          )}
+        </div>
 
-      {/* --- Categories Section --- */}
-      <section className="mb-8 bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3 border-b pb-2">📋 Menu Categories</h2>
-        {categories.length === 0 ? (
-          <p className="text-gray-500">No categories added yet.</p>
-        ) : (
-          <div className="flex flex-wrap gap-3">
-            {categories.map((c) => (
-              <div
-                key={c._id}
-                className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg font-medium shadow-sm"
-              >
-                {c.name}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+        {/* Categories */}
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>📋 Menu Categories</h2>
+          {categories.length === 0 ? (
+            <p style={emptyText}>No categories added yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {categories.map((c) => (
+                <span
+                  key={c._id}
+                  style={{
+                    backgroundColor: "#fff8dc",
+                    color: "#b8860b",
+                    padding: "8px 12px",
+                    borderRadius: "20px",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    border: "1px solid #d4af37",
+                  }}
+                >
+                  {c.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* --- Tables Section --- */}
-      <section className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3 border-b pb-2">🪑 Tables</h2>
-        {tables.length === 0 ? (
-          <p className="text-gray-500">No tables found.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {tables.map((t) => (
-              <div
-                key={t._id}
-                className="border rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
-              >
-                <h3 className="font-bold">Table #{t.number}</h3>
-                <p className="text-sm text-gray-600">QR: {t.qrSlug}</p>
+        {/* Tables */}
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>🪑 Tables</h2>
+          {tables.length === 0 ? (
+            <p style={emptyText}>No tables found.</p>
+          ) : (
+            tables.map((t) => (
+              <div key={t._id} style={miniCard}>
+                <h3 style={{ margin: 0, color: "#b8860b" }}>
+                  Table #{t.number}
+                </h3>
+                <p style={{ fontSize: "13px", color: "#555" }}>
+                  QR: {t.qrSlug}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
+/* ---- Styles ---- */
+const mainContainer = {
+  minHeight: "100vh",
+  background: "linear-gradient(180deg, #fffdf8, #fdf6e3)",
+  padding: "40px 20px",
+  fontFamily: "Poppins, sans-serif",
+};
+
+const loadingContainer = {
+  height: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#fffaf0",
+  color: "#b7950b",
+};
+
+const spinner = {
+  width: "40px",
+  height: "40px",
+  border: "4px solid #f2e1a3",
+  borderTopColor: "#d4af37",
+  borderRadius: "50%",
+  animation: "spin 1s linear infinite",
+};
+
+const title = {
+  color: "#b8860b",
+  fontSize: "2.2rem",
+  margin: "0",
+  fontWeight: "700",
+};
+
+const subtitle = { color: "#8b8000", fontSize: "15px" };
+
+const gridContainer = {
+  display: "grid",
+  gap: "30px",
+  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+  maxWidth: "1200px",
+  margin: "0 auto",
+};
+
+const cardStyle = {
+  backgroundColor: "#ffffff",
+  borderRadius: "15px",
+  padding: "20px",
+  boxShadow: "0 4px 10px rgba(212, 175, 55, 0.15)",
+  border: "1px solid #f0e6b2",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+};
+
+const sectionTitle = {
+  fontSize: "18px",
+  color: "#8b7500",
+  marginBottom: "15px",
+  borderBottom: "1px solid #f0e6b2",
+  paddingBottom: "8px",
+  fontWeight: "600",
+};
+
+const emptyText = {
+  color: "#b8a000",
+  fontSize: "14px",
+  fontStyle: "italic",
+};
+
+const miniCard = {
+  backgroundColor: "#fffaf0",
+  borderRadius: "10px",
+  padding: "10px 15px",
+  marginBottom: "10px",
+  border: "1px solid #f3e6b0",
+};
+
+const cardHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};

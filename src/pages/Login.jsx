@@ -2,29 +2,37 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { User, Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+
+  const [tab, setTab] = useState("login");
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [registerData, setRegisterData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (tab === "login")
+      setLoginData((prev) => ({ ...prev, [name]: value }));
+    else setRegisterData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      const res = await axios.post("http://localhost:4000/api/auth/login", formData);
+      const res = await axios.post("http://localhost:4000/api/auth/login", loginData);
       const { role, token } = res.data;
-
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
-
       if (role === "admin") navigate("/admin");
       else if (role === "staff") navigate("/staff");
       else navigate("/");
@@ -35,60 +43,226 @@ const Login = () => {
     }
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      await axios.post("http://localhost:4000/api/auth/register", registerData);
+      alert("Account created successfully! You can now login.");
+      setTab("login");
+    } catch (err) {
+      setError("Registration failed. Try another email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const styles = {
+    container: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #0d0d0d, #1a1a1a)",
+      color: "#fff",
+      fontFamily: "Poppins, sans-serif",
+    },
+    box: {
+      backgroundColor: "#111",
+      border: "1px solid #222",
+      borderRadius: "20px",
+      padding: "40px",
+      boxShadow: "0 0 20px rgba(255,215,0,0.2)",
+      width: "100%",
+      maxWidth: "400px",
+      textAlign: "center",
+    },
+    heading: {
+      fontSize: "2rem",
+      fontWeight: "bold",
+      color: "#FFD700",
+      marginBottom: "30px",
+      letterSpacing: "1px",
+    },
+    tabContainer: {
+      display: "flex",
+      justifyContent: "center",
+      marginBottom: "25px",
+    },
+    tabButton: (active) => ({
+      flex: 1,
+      padding: "10px 20px",
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+      fontWeight: "600",
+      backgroundColor: active ? "#FFD700" : "#333",
+      color: active ? "#000" : "#ccc",
+      transition: "0.3s",
+    }),
+    inputWrapper: {
+      position: "relative",
+      marginBottom: "15px",
+    },
+    icon: {
+      position: "absolute",
+      top: "12px",
+      left: "12px",
+      color: "#FFD700",
+    },
+    input: {
+      width: "100%",
+      padding: "12px 40px",
+      borderRadius: "8px",
+      border: "1px solid #444",
+      backgroundColor: "#1a1a1a",
+      color: "#fff",
+      fontSize: "14px",
+      outline: "none",
+    },
+    button: {
+      width: "100%",
+      padding: "12px",
+      borderRadius: "8px",
+      border: "none",
+      backgroundColor: "#FFD700",
+      color: "#000",
+      fontWeight: "600",
+      cursor: "pointer",
+      marginTop: "10px",
+      transition: "0.3s",
+    },
+    buttonHover: {
+      backgroundColor: "#e6c200",
+    },
+    error: {
+      color: "red",
+      fontSize: "13px",
+      marginBottom: "10px",
+    },
+    footer: {
+      marginTop: "25px",
+      fontSize: "13px",
+      color: "#aaa",
+    },
+    highlight: {
+      color: "#FFD700",
+      fontWeight: "600",
+    },
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-100 px-4">
+    <div style={styles.container}>
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md"
+        transition={{ duration: 0.6 }}
+        style={styles.box}
       >
-        <h2 className="text-3xl font-bold text-orange-600 text-center mb-6">
-          Staff / Admin Login
-        </h2>
+        <h2 style={styles.heading}>Scan n Dine 🍽️</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <p className="text-red-500 text-sm text-center font-medium">{error}</p>
-          )}
-
+        <div style={styles.tabContainer}>
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-semibold transition-all"
+            onClick={() => setTab("login")}
+            style={styles.tabButton(tab === "login")}
           >
-            {loading ? "Logging in..." : "Login"}
+            Login
           </button>
-        </form>
+          <button
+            onClick={() => setTab("register")}
+            style={styles.tabButton(tab === "register")}
+          >
+            Register
+          </button>
+        </div>
 
-        <p className="text-center text-gray-500 text-sm mt-6">
-          For Customers → <span className="text-orange-500">Scan QR to view menu</span>
+        {tab === "login" ? (
+          <form onSubmit={handleLogin}>
+            <div style={styles.inputWrapper}>
+              <Mail style={styles.icon} />
+              <input
+                type="email"
+                name="email"
+                value={loginData.email}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                placeholder="Email address"
+              />
+            </div>
+            <div style={styles.inputWrapper}>
+              <Lock style={styles.icon} />
+              <input
+                type="password"
+                name="password"
+                value={loginData.password}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                placeholder="Password"
+              />
+            </div>
+            {error && <p style={styles.error}>{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              style={styles.button}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister}>
+            <div style={styles.inputWrapper}>
+              <User style={styles.icon} />
+              <input
+                type="text"
+                name="name"
+                value={registerData.name}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                placeholder="Full Name"
+              />
+            </div>
+            <div style={styles.inputWrapper}>
+              <Mail style={styles.icon} />
+              <input
+                type="email"
+                name="email"
+                value={registerData.email}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                placeholder="Email address"
+              />
+            </div>
+            <div style={styles.inputWrapper}>
+              <Lock style={styles.icon} />
+              <input
+                type="password"
+                name="password"
+                value={registerData.password}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                placeholder="Password"
+              />
+            </div>
+            {error && <p style={styles.error}>{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              style={styles.button}
+            >
+              {loading ? "Creating..." : "Register"}
+            </button>
+          </form>
+        )}
+
+        <p style={styles.footer}>
+          For Customers → <span style={styles.highlight}>Scan QR to view menu</span>
         </p>
       </motion.div>
     </div>
